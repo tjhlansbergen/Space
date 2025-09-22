@@ -12,6 +12,8 @@ public static class Program
 
 		// register typed httpclient
 		services.AddHttpClient<N2yoClient>(client => client.BaseAddress = new System.Uri("https://api.n2yo.com"));
+		services.AddTransient<LogService>();
+		services.AddTransient<DataService>();
 
 		// build provider, resolve client
 		using var provider = services.BuildServiceProvider();

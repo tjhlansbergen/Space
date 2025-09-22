@@ -9,29 +9,23 @@ internal class N2yoClient
 	const string KEY = "&apiKey=6YY9ZH-N68FKZ-V56AWM-5KL7";
 
 	private readonly HttpClient _httpClient;
+	private readonly LogService _logService;
 
-	public N2yoClient(HttpClient httpClient)
+	public N2yoClient(HttpClient httpClient, LogService logService)
 	{
 		_httpClient = httpClient;
+		_logService = logService;
 	}
 
 	public async Task<AboveResult?> Above(int search_radius, int category_id)
 	{
 		var path = "/above";
-		var url = $"{_httpClient.BaseAddress}{API}{path}/41.702/-76.014/0/{search_radius}/{category_id}/{KEY}";
+		var url = $"{_httpClient.BaseAddress}{API}{path}/41.702/-76.014/0/{search_radius}/{category_id}/";
 
-		Log("Calling: ", url);
+		_logService.Log("Calling: ", new[] { url } );
 
-		var result = await _httpClient.GetFromJsonAsync<AboveResult>(url);
+		var result = await _httpClient.GetFromJsonAsync<AboveResult>(url + KEY);
 		return result;
 	}
 	
-	private static void Log(string action, string val)
-	{
-		var currColor = Console.ForegroundColor;
-		Console.Write(action);
-		Console.ForegroundColor = ConsoleColor.Blue;
-		Console.WriteLine(val);
-		Console.ForegroundColor = currColor;
-	}
 }
