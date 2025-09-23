@@ -22,7 +22,7 @@ internal class N2yoClient
 		var path = "/above";
 		var url = $"{_httpClient.BaseAddress}{API}{path}/41.702/-76.014/0/{search_radius}/{category_id}/";
 
-		_logService.Log("Calling: ", new[] { url } );
+		_logService.Log("Calling: ", new[] { url }, store: false, console: true );
 
 		var result = await _httpClient.GetFromJsonAsync<AboveResult>(url + KEY);
 		return result;

@@ -11,7 +11,7 @@ internal class LogService
 		_dataService = dataService;
 	}
 
-	public void Log(string message, string[] values, bool console = true)
+	public void Log(string message, string[] values, bool store = true, bool console = true)
 	{	
 		var val = string.Join(", ", values);
 		var now = DateTime.UtcNow;
@@ -21,7 +21,10 @@ internal class LogService
 			_console(message, val, now);
 		}
 
-		_database(message, val, now);
+		if (store)
+		{
+			_database(message, val, now);
+		}
 	}
 
 	private void _database(string message, string val, DateTime time)

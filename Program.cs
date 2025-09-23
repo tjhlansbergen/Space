@@ -5,7 +5,7 @@ namespace Space;
 
 public static class Program
 {
-	public static async Task Main()
+	public static async Task Main(string[] args)
 	{
 		// set up DI container
 		var services = new ServiceCollection();
@@ -16,11 +16,36 @@ public static class Program
 		services.AddTransient<DataService>();
 		services.AddTransient<MainLoop>();
 
-		// build provider, resolve client
 		using var provider = services.BuildServiceProvider();
-		var mainLoop = provider.GetRequiredService<MainLoop>();	
+		
+		if (args.Length > 0)
+		{
+			var dataService = provider.GetRequiredService<DataService>();
+			Arguments(args, dataService);
+		}
+		else
+		{
+			// resolve client
+			var mainLoop = provider.GetRequiredService<MainLoop>();	
 
-		// and launch
-		await mainLoop.Start();
+			// and launch
+			await mainLoop.Start();
+		}
+	}
+
+	public static void Arguments(string[] args, DataService dataService)
+	{
+		var lines = args[0] switch {
+			"events" => dataService.ReadEvents(),
+			_ => new[] { $"Unknown parameter {args[0]}" },
+
+			//TODO errors, sats, logs
+		};
+		
+		foreach (var line in lines)
+		{
+			// TODO formatting and timestamps
+			Console.WriteLine(line);
+		}
 	}
 }
