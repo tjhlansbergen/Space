@@ -38,7 +38,7 @@ internal class LogService
 		Console.ForegroundColor = ConsoleColor.Green;
 		Console.Write($"{time.TimeOfDay} | ");
 		Console.ForegroundColor = currColor;
-		Console.Write(message);
+		Console.Write($"{message} ");
 		Console.ForegroundColor = ConsoleColor.Blue;
 		Console.WriteLine(val);
 		Console.ForegroundColor = currColor;

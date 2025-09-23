@@ -10,16 +10,17 @@ public static class Program
 		// set up DI container
 		var services = new ServiceCollection();
 
-		// register typed httpclient
+		// register types httpclient & service
 		services.AddHttpClient<N2yoClient>(client => client.BaseAddress = new System.Uri("https://api.n2yo.com"));
 		services.AddTransient<LogService>();
 		services.AddTransient<DataService>();
+		services.AddTransient<MainLoop>();
 
 		// build provider, resolve client
 		using var provider = services.BuildServiceProvider();
-		var client = provider.GetRequiredService<N2yoClient>();
-		
-		var result = await client.Above(70, 18);
-		Console.WriteLine(result);
+		var mainLoop = provider.GetRequiredService<MainLoop>();	
+
+		// and launch
+		await mainLoop.Start();
 	}
 }
