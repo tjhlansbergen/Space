@@ -13,13 +13,21 @@ internal class ConsoleService
 
 	public void Go(string[] args)
 	{
-		if (args[0] == "events")
+		var howMany = (args.Length > 1 && int.TryParse(args[1], out var i)? i : 42);	
+
+		switch (args[0])
 		{
-			WriteEvents(args.Length > 1 && int.TryParse(args[1], out var howMany) ? howMany : 42);
-		}
-		else
-		{
-			_logService.Log($"Unknown parameter {args[0]}", [], store: false, console: true);
+			case "events":
+				WriteEvents(howMany);
+				break;
+
+			case "sats":
+				WriteSats(howMany);
+				break;
+
+			default:
+				_logService.Log($"Unknown parameter {args[0]}", [], store: false, console: true);
+				break;
 		}
 	}
 
@@ -29,6 +37,15 @@ internal class ConsoleService
 		foreach (var e in events)
 		{
 			_logService.Log(e.Details, [], store: false, console:true, e.TimeStamp);
+		}
+	}
+
+	private void WriteSats(int howMany)
+	{
+		var sats = DataService.ReadSats(howMany);
+		foreach (var s in sats)
+		{
+			Console.WriteLine($"{s.SatId} - {s.SatName}");
 		}
 	}
 }

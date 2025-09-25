@@ -25,7 +25,7 @@ internal class LogService
 	private void _database(string message, string val, DateTime time)
 	{
 		var evt = new Event { Details = $"{message} {val}", TimeStamp = time };
-        DataService.CreateEvent(evt);
+	        DataService.CreateEvent(evt);
 	}
 
 	private void _console(string message, string val, DateTime time, bool timestampProvided)
@@ -33,8 +33,17 @@ internal class LogService
 
 		var currColor = Console.ForegroundColor;
 
-		Console.ForegroundColor = timestampProvided ? ConsoleColor.Yellow : ConsoleColor.Green;
-		Console.Write($"{time:HH:mm:ss.f} | ");
+		if (timestampProvided)
+		{
+			Console.ForegroundColor = ConsoleColor.Yellow;
+			Console.Write($"{time:yyyy-MM-dd HH:mm:ss} | ");
+		}
+		else
+		{
+			Console.ForegroundColor = ConsoleColor.Green;
+			Console.Write($"{time:HH:mm:ss.f} | ");
+		}
+
 		Console.ForegroundColor = currColor;
 		Console.Write($"{message} ");
 		Console.ForegroundColor = ConsoleColor.Blue;

@@ -40,4 +40,55 @@ public class DataService
 			return [];
 		}
 	}
+
+	public static int UpsertSat(Sat sat)
+	{
+		int inserted = 0;
+
+		try
+		{
+			using var db = new LiteDatabase(_db);
+
+			var sats = db.GetCollection<Sat>("sats");
+			var existing = sats.FindOne(s => s.SatId == sat.SatId);
+
+    			if (existing != null)
+    			{
+        			// Update
+        			existing.LastSeen = DateTime.UtcNow;
+        			sats.Update(existing);
+    			}
+    			else
+    			{
+        			// Insert new record
+        			sats.Insert(sat);
+				inserted = 1;
+    			}
+		}
+		catch (Exception e)
+		{
+			Console.WriteLine(e.Message);
+		}
+
+		return inserted;
+	}	
+	
+	public static Sat[] ReadSats(int howMany)
+	{
+		try
+		{
+			using var db = new LiteDatabase(_db);
+
+			var sats = db.GetCollection<Sat>("sats");
+			return sats.Query()
+				.OrderBy(s => s.SatId)
+				.Limit(howMany)
+				.ToArray();
+		}
+		catch (Exception e)
+		{
+			Console.WriteLine(e.Message);
+			return [];
+		}
+	}
 }
