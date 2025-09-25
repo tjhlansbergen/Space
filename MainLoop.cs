@@ -5,6 +5,8 @@ namespace Space;
 
 internal class MainLoop
 {
+	private const int DelayMs = 10_000;
+
 	private readonly N2yoClient _client;
 	private readonly LogService _logService;
 
@@ -31,9 +33,9 @@ internal class MainLoop
 			stopwatch.Stop();
 
 			var elapsedMs = stopwatch.Elapsed.TotalMilliseconds;
-			_logService.Log($"Duration: {elapsedMs}ms, transaction count: {result?.Info?.TransactionsCount ?? 0}", new string[0], store: false, console: true);
+			_logService.Log($"Duration: {elapsedMs}ms, transaction count: {result?.Info?.TransactionsCount ?? 0}", [], store: false, console: true);
 
-			await Task.Delay(60_000 - (int)elapsedMs);
+			await Task.Delay(DelayMs - (int)elapsedMs);
 		}
 	}
 }

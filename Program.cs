@@ -13,15 +13,15 @@ public static class Program
 		// register types httpclient & service
 		services.AddHttpClient<N2yoClient>(client => client.BaseAddress = new System.Uri("https://api.n2yo.com"));
 		services.AddTransient<LogService>();
-		services.AddTransient<DataService>();
 		services.AddTransient<MainLoop>();
+		services.AddTransient<ConsoleService>();
 
 		using var provider = services.BuildServiceProvider();
 		
 		if (args.Length > 0)
 		{
-			var dataService = provider.GetRequiredService<DataService>();
-			Arguments(args, dataService);
+			var consoleService = provider.GetRequiredService<ConsoleService>();
+			consoleService.Go(args);
 		}
 		else
 		{
@@ -30,22 +30,6 @@ public static class Program
 
 			// and launch
 			await mainLoop.Start();
-		}
-	}
-
-	public static void Arguments(string[] args, DataService dataService)
-	{
-		var lines = args[0] switch {
-			"events" => dataService.ReadEvents(),
-			_ => new[] { $"Unknown parameter {args[0]}" },
-
-			//TODO errors, sats, logs
-		};
-		
-		foreach (var line in lines)
-		{
-			// TODO formatting and timestamps
-			Console.WriteLine(line);
 		}
 	}
 }

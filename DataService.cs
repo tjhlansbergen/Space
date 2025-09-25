@@ -7,11 +7,11 @@ public class DataService
 {
 	private static readonly string _db = "db.db";
 
-	public void CreateEvent(Event evt)
+	public static void CreateEvent(Event evt)
 	{
 		try
 		{
-			var db = new LiteDatabase(_db);
+			using var db = new LiteDatabase(_db);
 
 			var events = db.GetCollection<Event>("events");
 			events.Insert(evt);
@@ -22,24 +22,22 @@ public class DataService
 		}
 	}
 
-	public string[] ReadEvents()
+	public static Event[] ReadEvents(int howMany)
 	{
 		try
 		{
-			var db = new LiteDatabase(_db);
+			using var db = new LiteDatabase(_db);
 
 			var events = db.GetCollection<Event>("events");
 			return events.Query()
-				.OrderByDescending(e => e.TimeStamp)
-				.Limit(42)
-				.ToList()
-				.Select(e => e.Details)
-				.ToArray();	
+				.OrderBy(e => e.TimeStamp)
+				.Limit(howMany)
+				.ToArray();
 		}
 		catch (Exception e)
 		{
 			Console.WriteLine(e.Message);
-			return new string[0];
+			return [];
 		}
 	}
 }

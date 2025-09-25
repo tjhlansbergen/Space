@@ -4,42 +4,37 @@ namespace Space;
 
 internal class LogService
 {
-	private DataService _dataService;
-
-	public LogService(DataService dataService)
-	{
-		_dataService = dataService;
-	}
-
-	public void Log(string message, string[] values, bool store = true, bool console = true)
+	public void Log(string message, string[] values, bool store = true, bool console = true, DateTime? timeStamp = null)
 	{	
 		var val = string.Join(", ", values);
-		var now = DateTime.UtcNow;
+
+		var timestampProvided = timeStamp.HasValue;
+		timeStamp ??= DateTime.Now;
 		
 		if (console)
 		{
-			_console(message, val, now);
+			_console(message, val, timeStamp.Value, timestampProvided);
 		}
 
 		if (store)
 		{
-			_database(message, val, now);
+			_database(message, val, timeStamp.Value);
 		}
 	}
 
 	private void _database(string message, string val, DateTime time)
 	{
 		var evt = new Event { Details = $"{message} {val}", TimeStamp = time };
-		_dataService.CreateEvent(evt);
+        DataService.CreateEvent(evt);
 	}
 
-	private void _console(string message, string val, DateTime time)
+	private void _console(string message, string val, DateTime time, bool timestampProvided)
 	{
 
 		var currColor = Console.ForegroundColor;
 
-		Console.ForegroundColor = ConsoleColor.Green;
-		Console.Write($"{time.TimeOfDay} | ");
+		Console.ForegroundColor = timestampProvided ? ConsoleColor.Yellow : ConsoleColor.Green;
+		Console.Write($"{time:HH:mm:ss.f} | ");
 		Console.ForegroundColor = currColor;
 		Console.Write($"{message} ");
 		Console.ForegroundColor = ConsoleColor.Blue;
