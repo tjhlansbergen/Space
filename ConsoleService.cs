@@ -13,7 +13,7 @@ internal class ConsoleService
 
 	public void Go(string[] args)
 	{
-		var howMany = (args.Length > 1 && int.TryParse(args[1], out var i)? i : 42);	
+		var howMany = (args.Length > 1 && int.TryParse(args[1], out var i) ? i : 42);
 
 		switch (args[0])
 		{
@@ -36,16 +36,38 @@ internal class ConsoleService
 		var events = DataService.ReadEvents(howMany);
 		foreach (var e in events)
 		{
-			_logService.Log(e.Details, [], store: false, console:true, e.TimeStamp);
+			_logService.Log(e.Details, [], store: false, console: true, e.TimeStamp);
 		}
 	}
 
 	private void WriteSats(int howMany)
 	{
+		var currColor = Console.ForegroundColor;
+
 		var sats = DataService.ReadSats(howMany);
-		foreach (var s in sats)
+		var groups = sats.GroupBy(s => s.Category).OrderBy(g => g.Key);
+		foreach (var group in groups)
 		{
-			Console.WriteLine($"{s.SatId} - {s.SatName}");
+			Console.ForegroundColor = ConsoleColor.Yellow;
+			Console.WriteLine(group.Key);
+			
+			foreach (var s in group.OrderBy(s => s.SatName))
+			{
+				Console.ForegroundColor = ConsoleColor.Cyan;
+				Console.Write($"\t{s.SatId}");
+				Console.ForegroundColor = ConsoleColor.DarkBlue;
+				Console.Write($"\t- {s.SatName}");
+				Console.ForegroundColor = ConsoleColor.White;
+				Console.WriteLine($"\t🚀: {Fd(s.LaunchDate)}, 📡: {Fd(s.FirstSeen)}, 🛰️: {Fd(s.LastSeen)}");
+			}
 		}
+
+		Console.ForegroundColor = currColor;
 	}
+
+	private static string Fd(DateTime dt)
+	{
+		return dt.ToString("yyyy-MM-dd");
+	}
+
 }

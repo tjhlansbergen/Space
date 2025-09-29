@@ -5,7 +5,7 @@ namespace Space;
 
 internal class MainLoop
 {
-	private const int DELAY_MS = 10_000;
+	private const int DELAY_MS = 61_000;
 	private const int CATEGORY_COUNT = 57;
 
 	private readonly N2yoClient _client;
@@ -21,7 +21,7 @@ internal class MainLoop
 
 	public async Task Start()
 	{
-		_logService.Log("🚀 Main loop started on", new [] { System.Environment.MachineName }); 
+		_logService.Log("▶️  Main loop started on", [System.Environment.MachineName]); 
 
 		while (true)
 		{
