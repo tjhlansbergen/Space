@@ -25,6 +25,10 @@ internal class ConsoleService
 				WriteSats(howMany);
 				break;
 
+			case "stats":
+				WriteStats();
+				break;
+
 			default:
 				_logService.Log($"Unknown parameter {args[0]}", [], store: false, console: true);
 				break;
@@ -46,11 +50,13 @@ internal class ConsoleService
 
 		var sats = DataService.ReadSats(howMany);
 		var groups = sats.GroupBy(s => s.Category).OrderBy(g => g.Key);
+
 		foreach (var group in groups)
 		{
 			Console.ForegroundColor = ConsoleColor.Yellow;
+			Console.WriteLine();
 			Console.WriteLine(group.Key);
-			
+
 			foreach (var s in group.OrderBy(s => s.SatName))
 			{
 				Console.ForegroundColor = ConsoleColor.Cyan;
@@ -61,6 +67,26 @@ internal class ConsoleService
 				Console.WriteLine($"\t🚀: {Fd(s.LaunchDate)}, 📡: {Fd(s.FirstSeen)}, 🛰️: {Fd(s.LastSeen)}");
 			}
 		}
+
+		Console.ForegroundColor = currColor;
+	}
+
+	private void WriteStats()
+	{
+		var statCount = DataService.CountSats();
+		var eventCount = DataService.CountEvents();
+
+		var currColor = Console.ForegroundColor;
+
+		Console.Write("Satellites:\t");
+		Console.ForegroundColor = ConsoleColor.DarkBlue;
+		Console.Write(statCount.Item1);
+		Console.ForegroundColor = currColor;
+		Console.WriteLine($" (in {statCount.Item2} categories)");
+
+		Console.Write("Events:\t\t");
+		Console.ForegroundColor = ConsoleColor.DarkBlue;
+		Console.WriteLine(eventCount);
 
 		Console.ForegroundColor = currColor;
 	}

@@ -40,6 +40,38 @@ public class DataService
 			return [];
 		}
 	}
+	
+	public static long CountEvents()
+	{
+		try
+		{
+			using var db = new LiteDatabase(_db);
+
+			var events = db.GetCollection<Event>("events");
+			return events.Count();
+		}
+		catch (Exception e)
+		{
+			Console.WriteLine(e.Message);
+			return 0;
+		}
+	}
+
+	public static (long, long) CountSats()
+	{
+		try
+		{
+			using var db = new LiteDatabase(_db);
+
+			var sats = db.GetCollection<Sat>("sats");
+			return (sats.Count(), sats.Query().ToList().GroupBy(s => s.Category).Count());
+		}
+		catch (Exception e)
+		{
+			Console.WriteLine(e.Message);
+			return (0, 0);
+		}
+	}
 
 	public static int UpsertSat(Sat sat)
 	{
@@ -52,18 +84,18 @@ public class DataService
 			var sats = db.GetCollection<Sat>("sats");
 			var existing = sats.FindOne(s => s.SatId == sat.SatId);
 
-    			if (existing != null)
-    			{
-        			// Update
-        			existing.LastSeen = DateTime.UtcNow;
-        			sats.Update(existing);
-    			}
-    			else
-    			{
-        			// Insert new record
-        			sats.Insert(sat);
+			if (existing != null)
+			{
+				// Update
+				existing.LastSeen = DateTime.UtcNow;
+				sats.Update(existing);
+			}
+			else
+			{
+				// Insert new record
+				sats.Insert(sat);
 				inserted = 1;
-    			}
+			}
 		}
 		catch (Exception e)
 		{
