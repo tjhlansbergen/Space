@@ -23,7 +23,7 @@ internal class N2yoClient
 		var coord = GenerateRandomGpsCoordinate();
 		var url = $"{_httpClient.BaseAddress}{API}{path}/{coord.Latitude}/{coord.Longitude}/0/{search_radius}/{category_id}/";
 
-		_logService.Log("Calling: ", new[] { url }, store: false, console: true );
+		_logService.Log("Calling: ", [url], store: false, console: true );
 
 		var result = await _httpClient.GetFromJsonAsync<AboveResult>(url + KEY);
 		return result;
