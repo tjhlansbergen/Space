@@ -40,39 +40,34 @@ public class DataService
 			return [];
 		}
 	}
-	
-	public static long CountEvents()
+	public static SpaceStats GetSpaceStats()
 	{
 		try
 		{
 			using var db = new LiteDatabase(_db);
 
 			var events = db.GetCollection<Event>("events");
-			return events.Count();
-		}
-		catch (Exception e)
-		{
-			Console.WriteLine(e.Message);
-			return 0;
-		}
-	}
-
-	public static (long, long) CountSats()
-	{
-		try
-		{
-			using var db = new LiteDatabase(_db);
-
 			var sats = db.GetCollection<Sat>("sats");
-			return (sats.Count(), sats.Query().ToList().GroupBy(s => s.Category).Count());
+
+			long eventCount = events.Count();
+			long satCount = sats.Count();
+			long categoryCount = sats.Query().ToList().GroupBy(s => s.Category).Count();
+			long locationCount = sats.Query().Where(s => s.Location != null).Count();
+			
+			return new SpaceStats
+			{
+				EventCount = eventCount,
+				SatelliteCount = satCount,
+				CategoryCount = categoryCount,
+				LocationCount = locationCount
+			};
 		}
 		catch (Exception e)
 		{
 			Console.WriteLine(e.Message);
-			return (0, 0);
+			return new SpaceStats { EventCount = 0, SatelliteCount = 0, CategoryCount = 0 };
 		}
 	}
-
 	public static int UpsertSat(Sat sat)
 	{
 		int inserted = 0;
@@ -88,6 +83,7 @@ public class DataService
 			{
 				// Update
 				existing.LastSeen = DateTime.UtcNow;
+				existing.Location = sat.Location;
 				sats.Update(existing);
 			}
 			else

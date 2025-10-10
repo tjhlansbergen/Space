@@ -81,6 +81,12 @@ internal class MainLoop
 			FirstSeen = DateTime.UtcNow,
 			LastSeen = DateTime.UtcNow,
 			Category = result?.Info?.Category ?? string.Empty,
+			Location = new SatLocation
+			{
+				Latitude = s.SatLat,
+				Longitude = s.SatLng,
+				Altitude = s.SatAlt,
+			}
 		});
 	}
 }
