@@ -65,7 +65,7 @@ internal class ConsoleService
 				Console.Write($"- {s.SatName,-25}");
 				Console.ForegroundColor = ConsoleColor.White;
 				var locationIcon = s.Location != null ? " 🌍" : "";
-				Console.WriteLine($"🚀: {Fd(s.LaunchDate)}, 📡: {Fd(s.FirstSeen)}, 🛰️: {Fd(s.LastSeen)}{locationIcon}");
+				Console.WriteLine($"🚀 {Fd(s.LaunchDate)} 📡 {Fd(s.FirstSeen)} 🛰️  {Fd(s.LastSeen)} {locationIcon}");
 			}
 		}
 
@@ -110,7 +110,7 @@ internal class ConsoleService
 
 	private static string Fd(DateTime dt)
 	{
-		return dt.ToString("yyyy-MM-dd");
+		return dt.ToString("yyyy-MM-dd HH:mm");
 	}
 
 }

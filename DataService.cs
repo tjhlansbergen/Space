@@ -6,15 +6,19 @@ namespace Space;
 public class DataService
 {
 	private static readonly string _db = "db.db";
+	private static readonly object _dbLock = new object();
 
 	public static void CreateEvent(Event evt)
 	{
 		try
 		{
-			using var db = new LiteDatabase(_db);
+			lock (_dbLock)
+			{
+				using var db = new LiteDatabase(_db);
 
-			var events = db.GetCollection<Event>("events");
-			events.Insert(evt);
+				var events = db.GetCollection<Event>("events");
+				events.Insert(evt);
+			}
 		}
 		catch (Exception e)
 		{
@@ -26,13 +30,16 @@ public class DataService
 	{
 		try
 		{
-			using var db = new LiteDatabase(_db);
+			lock (_dbLock)
+			{
+				using var db = new LiteDatabase(_db);
 
-			var events = db.GetCollection<Event>("events");
-			return events.Query()
-				.OrderBy(e => e.TimeStamp)
-				.Limit(howMany)
-				.ToArray();
+				var events = db.GetCollection<Event>("events");
+				return events.Query()
+					.OrderByDescending(e => e.TimeStamp)
+					.Limit(howMany)
+					.ToArray();
+			}
 		}
 		catch (Exception e)
 		{
@@ -44,23 +51,29 @@ public class DataService
 	{
 		try
 		{
-			using var db = new LiteDatabase(_db);
-
-			var events = db.GetCollection<Event>("events");
-			var sats = db.GetCollection<Sat>("sats");
-
-			long eventCount = events.Count();
-			long satCount = sats.Count();
-			long categoryCount = sats.Query().ToList().GroupBy(s => s.Category).Count();
-			long locationCount = sats.Query().Where(s => s.Location != null).Count();
-			
-			return new SpaceStats
+			lock (_dbLock)
 			{
-				EventCount = eventCount,
-				SatelliteCount = satCount,
-				CategoryCount = categoryCount,
-				LocationCount = locationCount
-			};
+				using var db = new LiteDatabase(_db);
+
+				var events = db.GetCollection<Event>("events");
+				var sats = db.GetCollection<Sat>("sats");
+
+				long eventCount = events.Count();
+				long satCount = sats.Count();
+				
+				// Get all sats once and perform operations in memory to avoid multiple queries
+				var allSats = sats.FindAll().ToArray();
+				long categoryCount = allSats.GroupBy(s => s.Category).Count();
+				long locationCount = allSats.Count(s => s.Location != null);
+
+				return new SpaceStats
+				{
+					EventCount = eventCount,
+					SatelliteCount = satCount,
+					CategoryCount = categoryCount,
+					LocationCount = locationCount
+				};
+			}
 		}
 		catch (Exception e)
 		{
@@ -70,27 +83,38 @@ public class DataService
 	}
 	public static int UpsertSat(Sat sat)
 	{
+		return UpsertSats(new[] { sat });
+	}
+
+	public static int UpsertSats(Sat[] satellites)
+	{
 		int inserted = 0;
 
 		try
 		{
-			using var db = new LiteDatabase(_db);
-
-			var sats = db.GetCollection<Sat>("sats");
-			var existing = sats.FindOne(s => s.SatId == sat.SatId);
-
-			if (existing != null)
+			lock (_dbLock)
 			{
-				// Update
-				existing.LastSeen = DateTime.UtcNow;
-				existing.Location = sat.Location;
-				sats.Update(existing);
-			}
-			else
-			{
-				// Insert new record
-				sats.Insert(sat);
-				inserted = 1;
+				using var db = new LiteDatabase(_db);
+				var sats = db.GetCollection<Sat>("sats");
+
+				foreach (var sat in satellites)
+				{
+					var existing = sats.FindOne(s => s.SatId == sat.SatId);
+
+					if (existing != null)
+					{
+						// Update
+						existing.LastSeen = DateTime.UtcNow;
+						existing.Location = sat.Location;
+						sats.Update(existing);
+					}
+					else
+					{
+						// Insert new record
+						sats.Insert(sat);
+						inserted++;
+					}
+				}
 			}
 		}
 		catch (Exception e)
@@ -105,13 +129,16 @@ public class DataService
 	{
 		try
 		{
-			using var db = new LiteDatabase(_db);
+			lock (_dbLock)
+			{
+				using var db = new LiteDatabase(_db);
 
-			var sats = db.GetCollection<Sat>("sats");
-			return sats.Query()
-				.OrderBy(s => s.SatId)
-				.Limit(howMany)
-				.ToArray();
+				var sats = db.GetCollection<Sat>("sats");
+				return sats.Query()
+					.OrderBy(s => s.SatId)
+					.Limit(howMany)
+					.ToArray();
+			}
 		}
 		catch (Exception e)
 		{

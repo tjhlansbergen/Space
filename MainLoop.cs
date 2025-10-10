@@ -51,13 +51,8 @@ internal class MainLoop
 			
 			if (sats.Length > 0)
 			{
-				var inserted = 0;
-
-				// Store
-				foreach(var sat in sats)
-				{
-					inserted += DataService.UpsertSat(sat);
-				}
+				// Store all satellites in a single database transaction
+				var inserted = DataService.UpsertSats(sats);
 
 				_logService.Log($"Updated {sats.Length - inserted} satellites, new satellites inserted:", new [] { inserted.ToString() }, store: true, console: true);
 			}

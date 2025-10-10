@@ -1,0 +1,541 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Satellite Tracker Dashboard</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #0a0a0a;
+            color: #ffffff;
+            margin: 0;
+            padding-left: 30px;
+            padding-right: 30px;
+        }
+        .header {
+            text-align: center;
+            margin-bottom: 10px;
+            
+        }
+        .container {
+            width: 100%;
+            margin: 0;
+            padding-left: 5px;
+            padding-right: 5px;
+            display: grid;
+            grid-template-columns: 35fr 65fr;
+            gap: 15px;
+            align-items: start;
+        }
+        .main-content {
+            min-width: 0;
+        }
+        .right-panel {
+            background: linear-gradient(135deg, #2a2a2a 0%, #3a3a3a 100%);
+            border-radius: 10px;
+            border: 1px solid #333;
+            padding: 20px;
+            height: calc(100vh - 250px);
+            display: flex;
+            flex-direction: column;
+        }
+        .map-container {
+            position: relative;
+            width: 100%;
+            background: #1a1a1a;
+            border-radius: 8px;
+            border: 1px solid #444;
+            overflow: hidden;
+            flex: 1;
+            min-height: 0;
+        }
+        .world-map {
+            width: 100%;
+            height: 100%;
+        }
+        .satellite-dot {
+            cursor: pointer;
+            transition: r 0.2s ease;
+        }
+        .satellite-dot:hover {
+            r: 4;
+        }
+        .satellite-recent {
+            fill: #00ff00;
+            opacity: 0.9;
+        }
+        .satellite-old {
+            fill: #1e3a8a;
+            opacity: 0.7;
+        }
+        .satellite-very-old {
+            fill: #666666;
+            opacity: 0.5;
+        }
+        .map-tooltip {
+            position: absolute;
+            background: rgba(0, 0, 0, 0.9);
+            color: white;
+            padding: 8px 12px;
+            border-radius: 4px;
+            font-size: 12px;
+            pointer-events: none;
+            z-index: 1000;
+            border: 1px solid #666;
+            display: none;
+        }
+        .map-title {
+            color: #fff;
+            margin-bottom: 15px;
+            font-size: 1.1em;
+            font-weight: bold;
+        }
+        .map-legend {
+            margin-top: 10px;
+            font-size: 0.8em;
+            color: #aaa;
+        }
+        .legend-item {
+            display: flex;
+            align-items: center;
+            margin: 5px 0;
+        }
+        .legend-dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            margin-right: 8px;
+        }
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+        .stat-card {
+            background: linear-gradient(135deg, #2a2a2a 0%, #3a3a3a 100%);
+            padding: 20px;
+            border-radius: 10px;
+            border: 1px solid #333;
+            text-align: center;
+        }
+        .stat-value {
+            font-size: 2em;
+            font-weight: bold;
+            color: #4CAF50;
+            margin-bottom: 5px;
+        }
+        .stat-label {
+            color: #aaa;
+            font-size: 0.9em;
+        }
+        .section {
+            background: linear-gradient(135deg, #2a2a2a 0%, #3a3a3a 100%);
+            margin-bottom: 20px;
+            border-radius: 10px;
+            border: 1px solid #333;
+            overflow: hidden;
+        }
+        .section-header {
+            background: rgba(0,0,0,0.3);
+            padding: 15px 20px;
+            font-size: 1.2em;
+            font-weight: bold;
+            border-bottom: 1px solid #333;
+        }
+        .section-content {
+            padding: 20px;
+            max-height: 360px;
+            overflow-y: auto;
+        }
+        .satellite-item {
+            display: grid;
+            grid-template-columns: 80px 250px 1fr;
+            gap: 15px;
+            padding: 10px 0;
+            border-bottom: 1px solid rgba(255,255,255,0.1);
+            align-items: center;
+        }
+        .satellite-item:last-child {
+            border-bottom: none;
+        }
+        .sat-id {
+            color: #00FFFF;
+            font-weight: bold;
+        }
+        .sat-name {
+            color: #FFD700;
+        }
+        .sat-details {
+            color: #ccc;
+            font-size: 0.9em;
+        }
+        .category-header {
+            color: #FFA500;
+            font-weight: bold;
+            margin: 15px 0 10px 0;
+            padding: 5px 0;
+            border-bottom: 1px solid #FFA500;
+        }
+        .event-item {
+            padding: 8px 0;
+            border-bottom: 1px solid rgba(255,255,255,0.1);
+        }
+        .event-time {
+            color: #888;
+            font-size: 0.8em;
+        }
+        .event-details {
+            color: #fff;
+            margin-top: 2px;
+        }
+        .last-updated {
+            text-align: center;
+            color: #666;
+            font-size: 0.8em;
+            margin-top: 10px;
+        }
+        .location-indicator {
+            color: #4CAF50;
+        }
+        .loading {
+            text-align: center;
+            color: #666;
+            padding: 10px;
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>🛰️ Satellite Tracker Dashboard</h1>
+    </div>
+    
+    <div class="container">
+        <div class="main-content">
+            <div class="stats-grid" id="statsGrid">
+                <div class="loading">Loading statistics...</div>
+            </div>
+
+            <div class="section">
+                <div class="section-header">📡 Recent Events</div>
+                <div class="section-content" id="eventsContent">
+                    <div class="loading">Loading events...</div>
+                </div>
+            </div>
+
+            <div class="section">
+                <div class="section-header">🛰️ Tracked Satellites</div>
+                <div class="section-content" id="satellitesContent">
+                    <div class="loading">Loading satellites...</div>
+                </div>
+            </div>
+        </div>
+
+        <div class="right-panel">
+            <div class="map-title">🌍 Satellite Locations</div>
+            <div class="map-container">
+                <svg class="world-map" viewBox="0 0 800 400" id="worldMap">
+                    <!-- Simple world map outline -->
+                    <defs>
+                        <style>
+                            .continent { fill: #333; stroke: #555; stroke-width: 0.5; }
+                        </style>
+                    </defs>
+                    <!-- Simplified world map shapes -->
+                    <rect width="800" height="400" fill="#1a1a1a"/>
+                    <!-- North America -->
+                    <path class="continent" d="M100,100 L200,80 L250,120 L220,180 L150,200 L80,150 Z"/>
+                    <!-- South America -->
+                    <path class="continent" d="M180,220 L220,200 L240,280 L200,340 L160,320 L150,260 Z"/>
+                    <!-- Europe -->
+                    <path class="continent" d="M350,90 L400,85 L420,120 L380,140 L340,125 Z"/>
+                    <!-- Africa -->
+                    <path class="continent" d="M360,150 L420,140 L440,220 L400,300 L340,280 L330,200 Z"/>
+                    <!-- Asia -->
+                    <path class="continent" d="M450,80 L650,70 L680,150 L620,180 L500,160 L430,120 Z"/>
+                    <!-- Australia -->
+                    <path class="continent" d="M580,280 L650,270 L670,300 L640,320 L580,310 Z"/>
+                    <!-- Antarctica -->
+                    <path class="continent" d="M100,360 L700,360 L700,390 L100,390 Z"/>
+                </svg>
+                <div class="map-tooltip" id="mapTooltip"></div>
+            </div>
+            <div class="map-legend">
+                <div class="legend-item">
+                    <div class="legend-dot" style="background: #00ff00;"></div>
+                    <span>Recently added (last minute)</span>
+                </div>
+                <div class="legend-item">
+                    <div class="legend-dot" style="background: #1e3a8a;"></div>
+                    <span>Recently added (last hour)</span>
+                </div>
+                <div class="legend-item">
+                    <div class="legend-dot" style="background: #666666;"></div>
+                    <span>Older data</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="last-updated" id="lastUpdated"></div>
+
+    <script>
+        class SpaceDashboard {
+            constructor() {
+                this.baseUrl = '/api';
+                this.updateInterval = 60000; // 1 minute
+                this.satellites = [];
+                this.init();
+            }
+
+            formatDate(dateString) {
+                const date = new Date(dateString);
+                const year = date.getFullYear();
+                const month = String(date.getMonth() + 1).padStart(2, '0');
+                const day = String(date.getDate()).padStart(2, '0');
+                const hours = String(date.getHours()).padStart(2, '0');
+                const minutes = String(date.getMinutes()).padStart(2, '0');
+                return `${year}-${month}-${day} ${hours}:${minutes}`;
+            }
+
+            formatDateOnly(dateString) {
+                const date = new Date(dateString);
+                const year = date.getFullYear();
+                const month = String(date.getMonth() + 1).padStart(2, '0');
+                const day = String(date.getDate()).padStart(2, '0');
+                return `${year}-${month}-${day}`;
+            }
+
+            formatDateWithSeconds(dateString) {
+                const date = new Date(dateString);
+                const year = date.getFullYear();
+                const month = String(date.getMonth() + 1).padStart(2, '0');
+                const day = String(date.getDate()).padStart(2, '0');
+                const hours = String(date.getHours()).padStart(2, '0');
+                const minutes = String(date.getMinutes()).padStart(2, '0');
+                const seconds = String(date.getSeconds()).padStart(2, '0');
+                return `${year}-${month}-${day} ${hours}:${minutes}:${seconds}`;
+            }
+
+            async init() {
+                await this.loadAllData();
+                this.startAutoRefresh();
+            }
+
+            async loadAllData() {
+                try {
+                    await Promise.all([
+                        this.loadStats(),
+                        this.loadEvents(),
+                        this.loadSatellites()
+                    ]);
+                    this.updateLastUpdated();
+                    this.updateSatelliteMap();
+                } catch (error) {
+                    console.error('Error loading data:', error);
+                }
+            }
+
+            async loadStats() {
+                try {
+                    const response = await fetch(`${this.baseUrl}/stats`);
+                    const stats = await response.json();
+                    this.renderStats(stats);
+                } catch (error) {
+                    console.error('Error loading stats:', error);
+                }
+            }
+
+            async loadEvents() {
+                try {
+                    const response = await fetch(`${this.baseUrl}/events?limit=20`);
+                    const events = await response.json();
+                    this.renderEvents(events);
+                } catch (error) {
+                    console.error('Error loading events:', error);
+                }
+            }
+
+            async loadSatellites() {
+                try {
+                    const response = await fetch(`${this.baseUrl}/satellites`);
+                    this.satellites = await response.json();
+                    this.renderSatellites(this.satellites);
+                } catch (error) {
+                    console.error('Error loading satellites:', error);
+                }
+            }
+
+            renderStats(stats) {
+                const statsGrid = document.getElementById('statsGrid');
+                statsGrid.innerHTML = `
+                    <div class="stat-card">
+                        <div class="stat-value">${stats.satelliteCount}</div>
+                        <div class="stat-label">Total Satellites</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-value">${stats.locationCount}</div>
+                        <div class="stat-label">With Location</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-value">${stats.categoryCount}</div>
+                        <div class="stat-label">Categories</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-value">${stats.eventCount}</div>
+                        <div class="stat-label">Total Events</div>
+                    </div>
+                `;
+            }
+
+            renderEvents(events) {
+                const eventsContent = document.getElementById('eventsContent');
+                if (!events || events.length === 0) {
+                    eventsContent.innerHTML = '<div class="loading">No events found</div>';
+                    return;
+                }
+
+                const eventsHtml = events.map(event => `
+                    <div class="event-item">
+                        <div class="event-time">${this.formatDateWithSeconds(event.timeStamp)}</div>
+                        <div class="event-details">${event.details}</div>
+                    </div>
+                `).join('');
+
+                eventsContent.innerHTML = eventsHtml;
+            }
+
+            renderSatellites(satellites) {
+                const satellitesContent = document.getElementById('satellitesContent');
+                if (!satellites || satellites.length === 0) {
+                    satellitesContent.innerHTML = '<div class="loading">No satellites found</div>';
+                    return;
+                }
+
+                // Group by category
+                const grouped = satellites.reduce((acc, sat) => {
+                    if (!acc[sat.category]) {
+                        acc[sat.category] = [];
+                    }
+                    acc[sat.category].push(sat);
+                    return acc;
+                }, {});
+
+                let html = '';
+                Object.keys(grouped).sort().forEach(category => {
+                    html += `<div class="category-header">${category}</div>`;
+                    grouped[category].forEach(sat => {
+                        const locationIcon = sat.location ? '🌍 ' : '&nbsp;&nbsp;&nbsp;';
+                        html += `
+                            <div class="satellite-item">
+                                <div class="sat-id">${locationIcon}${sat.satId}</div>
+                                <div class="sat-name">${sat.satName}</div>
+                                <div class="sat-details">
+                                    🚀: ${this.formatDateOnly(sat.launchDate)}, 
+                                    📡: ${this.formatDate(sat.firstSeen)}, 
+                                    🛰️: ${this.formatDate(sat.lastSeen)}
+                                </div>
+                            </div>
+                        `;
+                    });
+                });
+
+                satellitesContent.innerHTML = html;
+            }
+
+            updateLastUpdated() {
+                const lastUpdated = document.getElementById('lastUpdated');
+                lastUpdated.textContent = `Last updated: ${this.formatDateWithSeconds(new Date())}`;
+            }
+
+            startAutoRefresh() {
+                setInterval(() => {
+                    this.loadAllData();
+                }, this.updateInterval);
+            }
+
+            updateSatelliteMap() {
+                const map = document.getElementById('worldMap');
+                const tooltip = document.getElementById('mapTooltip');
+                
+                // Remove existing satellite dots
+                const existingDots = map.querySelectorAll('.satellite-dot');
+                existingDots.forEach(dot => dot.remove());
+                
+                // Add satellites with location data, sorted by lastSeen (oldest first)
+                const satellitesWithLocation = this.satellites
+                    .filter(sat => sat.location)
+                    .sort((a, b) => new Date(a.lastSeen) - new Date(b.lastSeen));
+                const now = new Date();
+                
+                satellitesWithLocation.forEach(sat => {
+                    const { latitude, longitude } = sat.location;
+                    
+                    // Convert lat/lng to SVG coordinates
+                    // Longitude: -180 to 180 -> 0 to 800
+                    // Latitude: 90 to -90 -> 0 to 400
+                    const x = ((longitude + 180) / 360) * 800;
+                    const y = ((90 - latitude) / 180) * 400;
+                    
+                    // Check satellite age and assign appropriate class
+                    const lastSeen = new Date(sat.lastSeen);
+                    const minutesAgo = (now - lastSeen) / (1000 * 60);
+                    const hoursAgo = minutesAgo / 60;
+                    
+                    let ageClass;
+                    if (minutesAgo <= 1) {
+                        ageClass = 'satellite-recent';  // Green - last minute
+                    } else if (hoursAgo <= 1) {
+                        ageClass = 'satellite-old';     // Blue - last 1 hour
+                    } else {
+                        ageClass = 'satellite-very-old'; // Grey - older than 1 hour
+                    }
+                    
+                    // Create satellite dot
+                    const dot = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
+                    dot.setAttribute('cx', x);
+                    dot.setAttribute('cy', y);
+                    dot.setAttribute('r', '2.5');
+                    dot.classList.add('satellite-dot');
+                    dot.classList.add(ageClass);
+                    
+                    // Add hover events
+                    dot.addEventListener('mouseenter', (e) => {
+                        const mapContainer = document.querySelector('.map-container');
+                        const mapRect = mapContainer.getBoundingClientRect();
+                        
+                        tooltip.innerHTML = `
+                            <strong>${sat.satName}</strong><br>
+                            ID: ${sat.satId}<br>
+                            Location: ${latitude.toFixed(3)}, ${longitude.toFixed(3)}<br>
+                            Last seen: ${this.formatDate(sat.lastSeen)}
+                        `;
+                        tooltip.style.display = 'block';
+                        tooltip.style.left = (e.clientX - mapRect.left) + 'px';
+                        tooltip.style.top = (e.clientY - mapRect.top) + 'px';
+                    });
+                    
+                    dot.addEventListener('mouseleave', () => {
+                        tooltip.style.display = 'none';
+                    });
+                    
+                    dot.addEventListener('mousemove', (e) => {
+                        const mapContainer = document.querySelector('.map-container');
+                        const mapRect = mapContainer.getBoundingClientRect();
+                        tooltip.style.left = (e.clientX - mapRect.left) + 'px';
+                        tooltip.style.top = (e.clientY - mapRect.top) + 'px';
+                    });
+                    
+                    map.appendChild(dot);
+                });
+            }
+        }
+
+        // Initialize dashboard when page loads
+        document.addEventListener('DOMContentLoaded', () => {
+            new SpaceDashboard();
+        });
+    </script>
+</body>
+</html>
