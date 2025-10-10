@@ -22,14 +22,16 @@ internal class MainLoop
 	public async Task Start()
 	{
 		_logService.Log("▶️  Main loop started on", [System.Environment.MachineName]); 
+		var transactionsCount = 0;
 
-		while (true)
+		while (transactionsCount < 60)	// don't exceed api limit of 60 transactions per hour
 		{
 			var stopwatch = new Stopwatch();
 			stopwatch.Start();
 
 			var category = _rnd.Next(1, CATEGORY_COUNT + 1);
 			var result = await _client.Above(70, category);
+			transactionsCount = result?.Info?.TransactionsCount ?? 0;
 
 			var message = string.Empty;
 			var values = Array.Empty<string>();
