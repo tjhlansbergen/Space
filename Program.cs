@@ -13,7 +13,7 @@ public static class Program
 		}
 		else if (args.Length > 0)
 		{
-			await RunConsoleMode(args);
+			RunConsoleMode(args);
 		}
 		else
 		{
@@ -66,7 +66,7 @@ public static class Program
 		await app.RunAsync();
 	}
 
-	private static async Task RunConsoleMode(string[] args)
+	private static void RunConsoleMode(string[] args)
 	{
 		var services = new ServiceCollection();
 		services.AddHttpClient<N2yoClient>(client => 
