@@ -66,7 +66,7 @@
             opacity: 0.9;
         }
         .satellite-old {
-            fill: #1e3a8a;
+            fill: #4A90E2;
             opacity: 0.7;
         }
         .satellite-very-old {
@@ -235,29 +235,9 @@
         <div class="right-panel">
             <div class="map-title">🌍 Satellite Locations</div>
             <div class="map-container">
-                <svg class="world-map" viewBox="0 0 800 400" id="worldMap">
-                    <!-- Simple world map outline -->
-                    <defs>
-                        <style>
-                            .continent { fill: #333; stroke: #555; stroke-width: 0.5; }
-                        </style>
-                    </defs>
-                    <!-- Simplified world map shapes -->
-                    <rect width="800" height="400" fill="#1a1a1a"/>
-                    <!-- North America -->
-                    <path class="continent" d="M100,100 L200,80 L250,120 L220,180 L150,200 L80,150 Z"/>
-                    <!-- South America -->
-                    <path class="continent" d="M180,220 L220,200 L240,280 L200,340 L160,320 L150,260 Z"/>
-                    <!-- Europe -->
-                    <path class="continent" d="M350,90 L400,85 L420,120 L380,140 L340,125 Z"/>
-                    <!-- Africa -->
-                    <path class="continent" d="M360,150 L420,140 L440,220 L400,300 L340,280 L330,200 Z"/>
-                    <!-- Asia -->
-                    <path class="continent" d="M450,80 L650,70 L680,150 L620,180 L500,160 L430,120 Z"/>
-                    <!-- Australia -->
-                    <path class="continent" d="M580,280 L650,270 L670,300 L640,320 L580,310 Z"/>
-                    
-                    
+                <svg class="world-map" viewBox="0 0 2000 857" id="worldMap">
+                    <!-- Background world map -->
+                    <image href="map.svg" x="0" y="0" width="2000" height="857"/>
                 </svg>
                 <div class="map-tooltip" id="mapTooltip"></div>
             </div>
@@ -267,7 +247,7 @@
                     <span>Recently added (last minute)</span>
                 </div>
                 <div class="legend-item">
-                    <div class="legend-dot" style="background: #1e3a8a;"></div>
+                    <div class="legend-dot" style="background: #4A90E2;"></div>
                     <span>Recently added (last hour)</span>
                 </div>
                 <div class="legend-item">
@@ -473,10 +453,10 @@
                     const { latitude, longitude } = sat.location;
                     
                     // Convert lat/lng to SVG coordinates
-                    // Longitude: -180 to 180 -> 0 to 800
-                    // Latitude: 90 to -90 -> 0 to 400
-                    const x = ((longitude + 180) / 360) * 800;
-                    const y = ((90 - latitude) / 180) * 400;
+                    // Longitude: -180 to 180 -> 0 to 2000
+                    // Latitude: 90 to -90 -> 0 to 857
+                    const x = ((longitude + 180) / 360) * 2000;
+                    const y = ((90 - latitude) / 180) * 857;
                     
                     // Check satellite age and assign appropriate class
                     const lastSeen = new Date(sat.lastSeen);
