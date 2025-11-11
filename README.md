@@ -1,6 +1,6 @@
 # Space Tracker
 
-#DISCLAIMER: This entire project was made by copilot, not a single line of code touched (and copilot even did some of the commit messages for me).
+# DISCLAIMER: This entire project was made by copilot, not a single line of code touched (and copilot even did some of the commit messages for me).
 
 A real-time satellite tracking application that collects data from the N2YO API and provides both console and web-based visualization of satellite positions and statistics.
 
